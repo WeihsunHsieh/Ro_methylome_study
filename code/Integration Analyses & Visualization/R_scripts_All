@@ -1,0 +1,94 @@
+### R script for 3D PCA ###
+# 1. Load matrix
+expr <- read.delim("PCA_input_matrix.txt", header = TRUE, row.names = 1)
+# 2. Log10 transformation (+1 to avoid log(0))
+mat <- log10(expr + 1)
+# 3. PCA (retain first 3 PCs)
+pca <- prcomp(t(mat), rank. = 3)
+# 4. Extract PCA coordinates
+pca_df <- as.data.frame(pca$x)
+# (Optional) add group information if available
+# pca_df$Stage <- factor(stage_vector)
+# 5. 3D PCA plot
+plot_ly(
+  pca_df,
+  x = ~PC1,
+  y = ~PC2,
+  z = ~PC3,
+  type = "scatter3d", mode = "markers", marker = list(size = 8)
+)
+
+---
+
+### R script for correlation heatmap ###
+# 1. Load data
+gene_df <- read.delim(
+  "input.DESeq2NormCount.txt",
+  row.names = 1
+)
+met_df <- read.delim(
+  "input.metabolome.data.txt",
+  row.names = 1
+)
+# 2. Transpose matrices (samples × features)
+gene_mat <- t(gene_df)
+met_mat  <- t(met_df)
+
+# 3. Compute Pearson correlation and p-values
+cor_mat  <- matrix(NA, ncol(met_mat), ncol(gene_mat))
+pval_mat <- matrix(NA, ncol(met_mat), ncol(gene_mat))
+rownames(cor_mat) <- colnames(met_mat)
+colnames(cor_mat) <- colnames(gene_mat)
+dimnames(pval_mat) <- dimnames(cor_mat)
+for (i in seq_len(ncol(met_mat))) {
+  for (j in seq_len(ncol(gene_mat))) {
+    ct <- cor.test(met_mat[, i], gene_mat[, j], method = "pearson")
+    cor_mat[i, j]  <- ct$estimate
+    pval_mat[i, j] <- ct$p.value
+  }
+}
+# 4. Plot correlation heat map
+pdf("gene_metabolite_correlation_heatmap.pdf", width = 18, height = 6)
+pheatmap(
+  cor_mat,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  number_color = "black",
+  fontsize_number = 6,
+  fontsize_row = 10,
+  fontsize_col = 10,
+  color = colorRampPalette(
+    c("dodgerblue", "lightblue", "lightyellow", "orange", "orangered")
+  )(200),
+  main = "Gene–Metabolite Correlation"
+)
+dev.off()
+
+---
+
+### Identification of DMG and DMGxDEG ###
+ - DMG: intersectBed -sorted -wo -a input.DMR.bed -b Ro_v3_1500upTSSAndGenebody_strand.sorted.bed | awk -F"\t" 'BEGIN {OFS="\t"} {s1=$3-$2; s2=$7-$6; if (($11/s1 > 0) || ($11/s2 > 0)) {print $0}}' | sort -k1,1 -k2,2n | uniq > DMG_output_name]
+ - DMGxDEG: cat DMG_gene_list.id DEG_gene_list.id | sort | uniq -d > DMG_intersect_DEG.id
+
+### DeepTools for plotting linear plot profiling ### 
+# 1. Compute matrix
+computeMatrix scale-regions \
+  --regionBodyLength 2000 -b 2000 -a 2000 -bs 20 --skipZeros -p 22 \
+  -S bigwig_files.bw
+  -R Reference.bed \
+  -o output.gz \
+--samplesLabel Lv Gr Re So Tu Bl
+# 2. Plot linear profile
+plotProfile \
+  -m output.gz \
+  -out Ro_linear_plot_profile.pdf \
+  --plotType lines \
+  --perGroup \
+  --samplesLabel Lv Gr Re So Tu Bl \
+  --plotTitle "Ro_6stages_methylation" \
+  --endLabel "TTS" \
+  --legendLocation best \
+  --numPlotsPerRow 2 \
+  --plotHeight 18 \
+  --plotWidth 24 \
+  --colors darkblue darkgreen red orange brown grey
