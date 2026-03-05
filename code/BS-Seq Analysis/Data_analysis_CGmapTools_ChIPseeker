@@ -1,0 +1,129 @@
+### CGmapTools for defining DMRs ###
+
+DMR calling was performed using CGmapTools with the following parameters:
+-c 2, -C 500, -s 50, -S 1000, -n 5
+
+*p-value filtering: p < 0.05
+*cutoff of methylation level deviation between two samples: CG > 0.2, CHG > 0.1, CHH > 0.08
+
+---
+
+### Genomic annotation by ChIPseeker in R ###
+# Function:
+plotAnntBar <- function(peakAnnoList) {
+  res.peak.annt <- NULL
+  for (set in names(peakAnnoList)) {
+    annot.1 <- as.data.frame(peakAnnoList[[set]]@anno)
+    unique(annot.1$annotation)
+    annot.2 <- annot.1 %>%
+      mutate(
+        annt =
+          ifelse(
+            annotation %>% str_detect("Exon"),
+            ifelse(annotation %>% str_detect("exon 1 of"),
+              "1st Exon",
+              "Other Exon"
+            ),
+            ifelse(
+              annotation %>% str_detect("Intron"),
+              ifelse(
+                annotation %>% str_detect("intron 1 of"),
+                "1st Intron",
+                "Other Intron"
+              ),
+              annotation
+            )
+          )
+      ) %>%
+      dplyr::count(annt) %>%
+      mutate(
+        percentage = (n / sum(n)) * 100,
+        peaksetID = set
+      )
+    res.peak.annt <- res.peak.annt %>% bind_rows(annot.2)
+  }
+
+  promoter.annt <- c(grep("Promoter", unique(res.peak.annt$annt), value = T))
+  if (promoter.annt %>% str_detect("\\d")) {
+    sorted_promoter.annt <- promoter.annt[order(as.numeric(gsub("\\D", "", promoter.annt)), decreasing = T)]
+    col <- data.frame(
+      Feature = c(
+        sorted_promoter.annt,
+        "5' UTR", "1st Exon", "Other Exon", "1st Intron", "Other Intron", "3' UTR",
+        "Downstream (<=300bp)", "Distal Intergenic"
+      ),
+      colors = c(
+        brewer.pal(n = length(sorted_promoter.annt) - 1, name = "Blues") %>% rev(), "#A6CEE3",
+        "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
+        "#FF7F00", "#CAB2D6"
+      )
+    )
+  } else {
+    sorted_promoter.annt <- promoter.annt
+    col <- data.frame(
+      Feature = c(
+        sorted_promoter.annt,
+        "5' UTR", "1st Exon", "Other Exon", "1st Intron", "Other Intron", "3' UTR",
+        "Downstream (<=300bp)", "Distal Intergenic"
+      ),
+      colors = c(
+        "#A6CEE3",
+        "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
+        "#FF7F00", "#CAB2D6"
+      )
+    )
+  }
+
+  col.1 <- col %>% filter(Feature %in% unique(res.peak.annt$annt))
+  res.peak.annt %>%
+    mutate(peaksetID = peaksetID %>% factor(levels = c(names(peakAnnoList) %>% rev()))) %>%
+    mutate(annt = annt %>% factor(levels = col$Feature %>% rev())) %>%
+    arrange(annt) %>%
+    arrange(peaksetID) %>%
+    ggplot(aes(x = peaksetID, y = percentage, fill = annt, order = as.numeric(annt))) +
+    geom_col() +
+    ggtitle("Feature Distribution") +
+    xlab("") +
+    ylab("Percentage (%)") +
+    theme_bw() +
+    theme(
+      axis.text = element_text(size = 12, face = "bold"),
+      axis.title = element_text(size = 12, face = "bold")
+    ) +
+    scale_fill_manual(values = col.1$colors %>% rev()) +
+    coord_flip() +
+    guides(fill = guide_legend(reverse = TRUE))
+}
+Running function script: 
+txdb <- makeTxDbFromGFF(file="~/Desktop/Rubus_occ_V3.all.gff",
+                        format = "gff3",
+                        dataSource="https://www.rosaceae.org/",
+                        organism="Rubus occidentalis")
+saveDb(txdb, "~/Desktop/Ro_txdb")
+txdb <- loadDb("~/Desktop/Ro_txdb")
+path = "~/Desktop"
+bed_files = list.files(file.path(path, "bed"), ".bed", full.names = T)
+peaks <- vector("list", length = length(bed_files))
+for (i in seq_along(bed_files)) {
+  peaks[[i]] <- readPeakFile(bed_files[i], as = "GRanges", header = TRUE)
+}
+beds<- data.frame(path=bed_files
+                       )%>%
+  mutate(ID=path%>%basename()%>%str_extract("(?<=Ro\\.)[A-Za-z0-9.]+(?=\\.CHH)")%>%
+           str_remove(".br\\d+$"))
+grl1= NULL
+grl <- GRangesList()
+for (bed_files in 1: length(beds$path)) {
+  # gr <- read.table(bedfile, header = FALSE, colClasses = c("character", "integer", "integer", "integer"), col.names = c("seqnames", "start", "end", "value"))
+  gr <- read.table(beds$path[bed_files], header = FALSE)
+  colnames(gr)[1:3]<-c("seqnames", "start", "end")
+  gr <- makeGRangesFromDataFrame(gr, keep.extra.columns = TRUE)
+  ID<-beds$ID[bed_files]
+  grl[[ID]] <- gr
+}
+options(ChIPseeker.downstreamDistance = 0)
+grl1<-grl
+peakAnnoList <- lapply(grl1, annotatePeak, TxDb=txdb,
+                       tssRegion=c(-1500, -1), flankDistance = 5000, verbose=FALSE)
+plotAnntBar(peakAnnoList)
+
