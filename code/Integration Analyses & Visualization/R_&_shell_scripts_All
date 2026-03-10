@@ -70,6 +70,8 @@ dev.off()
  - DMG: intersectBed -sorted -wo -a input.DMR.bed -b Ro_v3_1500upTSSAndGenebody_strand.sorted.bed | awk -F"\t" 'BEGIN {OFS="\t"} {s1=$3-$2; s2=$7-$6; if (($11/s1 > 0) || ($11/s2 > 0)) {print $0}}' | sort -k1,1 -k2,2n | uniq > DMG_output_name]
  - DMGxDEG: cat DMG_gene_list.id DEG_gene_list.id | sort | uniq -d > DMG_intersect_DEG.id
 
+---
+
 ### DeepTools for plotting linear plot profiling ### 
 # 1. Compute matrix
 computeMatrix scale-regions \
@@ -92,3 +94,16 @@ plotProfile \
   --plotHeight 18 \
   --plotWidth 24 \
   --colors darkblue darkgreen red orange brown grey
+
+---
+
+### BLASTP analysis ###
+blastall -p blastp -i input.fasta -d protein database -o output file -m 8 -e 1e-4 -a 16 -b 1 -v 1 -K 1
+
+### Blast2GO annotation ###
+# BLAST step:
+- Program: BLASTP
+- Database: NCBI non-redundant protein database 
+- E-value cutoff: 1e-4
+- Annotation and mapping step: default
+
