@@ -1,0 +1,17 @@
+### Weighted Gene Co-expression Network Analysis (WGCNA) ###
+ # WGCNA was performed in R using normalized expression values derived from DESeq2.
+ 
+# Analysis workflow including:
+ 
+- using DEGs (cutoff: FDR <0.05, fold change >2x),
+ 
+- Soft-threshold power selection, based on scale-free topology fit index (R² > 0.7),
+ 
+- Construction of adjacency and TOM matrices,
+ 
+- Module detection using dynamic tree cutting,
+ 
+- Module–trait correlation analysis,
+ 
+- Module robustness by permutation test.
+
