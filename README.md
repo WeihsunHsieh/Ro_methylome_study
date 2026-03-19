@@ -172,11 +172,11 @@ Weighted gene co-expression network analysis (WGCNA) was performed in R using no
 
 Analysis workflow including: 
 
- - Filtering low-expression genes,
+ - Applying DEGs (with FDR < 0.05 and fold change > 2) and metabolome data,
 
- - Soft-threshold power selection, based on scale-free topology fit index (R² > 0.7),
+ - Soft-threshold power selection, based on scale-free topology fit index (Pearson correlation, R² > 0.7),
 
- - Construction of adjacency and TOM matrices,
+ - Construction of adjacency and Topological Overlap Matrix (TOM) matrices,
 
  - Module detection using dynamic tree cutting,
 
