@@ -71,14 +71,17 @@ sft <- sft.sm.ps
 #pdf(file="ChoosingSoftThresholdPower_AdjMat_R0pt7.pdf", width = 12, height = 9)
 par(mfrow = c(1,2));
 cex1 = 0.70;
+
 # Scale-free topology fit index as a function of the soft-thresholding power
 plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
      xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2", type="n",
      main = paste("Scale independence"));
 text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
      labels=powers,cex=cex1, col="red");
+
 # this line corresponds to using an R^2 cut-off of h
 abline(h=0.90, col="red")
+
 # Mean connectivity as a function of the soft-thresholding power
 plot(sft$fitIndices[,1], sft$fitIndices[,5],
      xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
@@ -95,18 +98,18 @@ adjacency=adjacency(datExpr, power=softPower, type = "signed")
 ## b. TOM: adjacency matrix is transformed in a Topological Overlapping Matrix (TOM)
 TOM = TOMsimilarity(adjacency, TOMType = "signed", TOMDenom = "min");
 
-##c. Save all adjacency and TOM in R.Data
+## c. Save all adjacency and TOM in R.Data
 save(sft, softPower, adjacency, TOM, dissTOM, 
      file = "softpowerCutOff0pt7_softPower20_way1.RData")
 
-#5. Module detection using dynamic tree cutting
+# 5. Module detection using dynamic tree cutting
 
-##a. Hierarchical clustering is applied to the Topological Overlap Matrix (TOM) dissimilarity to identify network modules.
+## a. Hierarchical clustering is applied to the Topological Overlap Matrix (TOM) dissimilarity to identify network modules.
 lnames=load(file="softpowerCutOff0pt7_softPower20_way1.RData");
 dissTOM = 1-TOM
 geneTree = hclust(as.dist(dissTOM), method = "average");
 
-##b. Module construction
+## b. Module construction
 minModuleSize = 30;
 dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
                             deepSplit = 2, pamRespectsDendro = FALSE,
@@ -123,7 +126,7 @@ plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                     main = "Gene dendrogram and module colors")
 #dev.off()
 
-##c. Module eigengenes are calculated to characterize and summarize the expression of each network module.
+## c. Module eigengenes are calculated to characterize and summarize the expression of each network module.
 MEList = moduleEigengenes(datExpr, colors = dynamicColors)
 MEs = MEList$eigengenes
 MEDiss = 1-cor(MEs);
@@ -135,7 +138,7 @@ sizeGrWindow(20, 10)
 plot(METree, main = "Clustering of module eigengenes", xlab = "", sub = "")
 #dev.off()
 
-##d. Merging of modules whose expression profiles are very similar (Using module eigengene dissimilarity, build a hierarchical cluster tree. 
+## d. Merging of modules whose expression profiles are very similar (Using module eigengene dissimilarity, build a hierarchical cluster tree. 
 Add a cut-off line at the desired height to merge modules with similar expression profiles.)
 
 # Modules-Height Cutoff <- 0
@@ -163,7 +166,7 @@ colorOrder = c("grey", standardColors(50));
 moduleLabels = match(moduleColors, colorOrder)-1;
 MEs = mergedMEs;
 
-#6. Module–trait correlation analysis
+# 6. Module–trait correlation analysis
 
 ## a. Associate modules with stages using Pearson correlation
 nGenes=ncol(datExpr);
@@ -315,11 +318,11 @@ dev.off()
 
 #7. Module robustness by permutation test
 
-##a. Load data (import RNA-seq data into DESeq2 with module labels and load the TOM data.)
+## a. Load data (import RNA-seq data into DESeq2 with module labels and load the TOM data.)
 observedTOM <- as.matrix(read.table("TOM_with_gene_names.txt", sep= "\t", header=T))
 moduleExp <- read.table("Ro_exprGenes_modLabels.txt", sep= "\t", header=T)
 
-##b. Calculate average Topological overlap (TO) for each observed module
+## b. Calculate average Topological overlap (TO) for each observed module
 mods <- unique(moduleExp$moduleLabels_final)
 modNum <- length(mods)
 
@@ -344,9 +347,9 @@ for (k in 1: modNum){
   meanTOvec[k] <- mean(TO_sub)
 }
 
-save(mods, modNum, observedModules, modGeneNums, geneids, TO_sub, meanTOvec, file = WGCNA_module_validation_Step1.RData")
+save(mods, modNum, observedModules, modGeneNums, geneids, TO_sub, meanTOvec, file = "WGCNA_module_validation_Step1.RData")
 
-##c. Calculate TO for random modules using 100,000 permutations
+## c. Calculate TO for random modules using 100,000 permutations
 randomMeanTO <- function(permutationNum, modNum){
   geneids <- randomResult[[permutationNum]][[modNum]]
   TO_sub <- as.numeric(observedTOM[ geneids, geneids ])
@@ -394,7 +397,7 @@ for (kk in 1:modNum){
 
 save(randomMeanTO, permutationNum, genelist_complete, randomResult, NumGreaterTO, mat, maxMeanTOs, file = "WGCNA_module_validation_Step2.RData")
 
-##d. Obtain results from the above steps to calculate permutation-based empirical p-values and save R.Data.
+## d. Obtain results from the above steps to calculate permutation-based empirical p-values and save R.Data.
 #mean TO for observed modules
 print(meanTOvec)
 
@@ -406,6 +409,5 @@ print(maxMeanTOs)
 
 #empirical p-values
 print(NumGreaterTO/permutationNum)
-
 
 save(meanTOvec, meanVecRandom, maxMeanTOs, NumGreaterTO, permutationNum, file = “WGCNA_module_validation_Ro_Result.RData")
