@@ -6,6 +6,10 @@ DMR calling was performed using CGmapTools with the following parameters:
 *p-value filtering: p < 0.05
 *cutoff of methylation level deviation between two samples: CG > 0.2, CHG > 0.1, CHH > 0.08
 
+### BEDTools for merging DMRs ###
+Identified DMRs were further merged by using the merge function implemented in BEDTools:
+bedtools merge -i input_files -d 299 -c 4,5,6,7,8 -o mean,mean,mean,sum,mean
+
 ---
 
 ### Genomic annotation by ChIPseeker in R ###
