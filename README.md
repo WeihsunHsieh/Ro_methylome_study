@@ -199,3 +199,9 @@ The repository is organized by analysis category:
 
 All custom scripts used in this study are publicly available in this repository.  
 Raw sequencing data are available under the accession number provided in the manuscript.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
