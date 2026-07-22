@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/1173219139.svg)](https://doi.org/10.5281/zenodo.21485749)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 # Epigenomic and Transcriptomic Analyses of Black Raspberry During Fruit Ripening
 
 This repository contains custom scripts and workflow descriptions used for the analysis of RNA-Seq and whole-genome bisulfite sequencing (BS-Seq) data in our study. 
@@ -7,7 +10,16 @@ The scripts are provided to ensure transparency and reproducibility of the analy
 
 * Paper: *submitted, currently under review*
 * Submitted version on bioRxiv: https://doi.org/10.1101/2025.11.24.690302
+
 * Code: https://github.com/WeihsunHsieh/Ro_methylome_study/tree/main/code
+* This repository contains the exact scripts corresponding to release v1.0.0 archived on Zenodo (DOI: 10.5281/zenodo.21485750).
+* Citation: Hsieh et al. (2026). Ro_methylome_study: Initial release (Version v1.0.0).Zenodo. https://doi.org/10.5281/zenodo.21485750.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ---
 
@@ -199,9 +211,3 @@ The repository is organized by analysis category:
 
 All custom scripts used in this study are publicly available in this repository.  
 Raw sequencing data are available under the accession number provided in the manuscript.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
