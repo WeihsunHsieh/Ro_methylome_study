@@ -13,7 +13,7 @@ The scripts are provided to ensure transparency and reproducibility of the analy
 
 * Code: https://github.com/WeihsunHsieh/Ro_methylome_study/tree/main/code
 * This repository contains the exact scripts corresponding to release v1.0.0 archived on Zenodo (DOI: 10.5281/zenodo.21485750).
-* Citation: Hsieh et al. (2026). Ro_methylome_study: Initial release (Version v1.0.0).Zenodo. https://doi.org/10.5281/zenodo.21485750.
+* Citation: Hsieh et al. (2026). Ro_methylome_study: Initial release (Version v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.21485750.
 
 ---
 
